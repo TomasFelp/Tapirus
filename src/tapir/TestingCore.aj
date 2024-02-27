@@ -106,10 +106,9 @@ public aspect TestingCore {
         TestingInformation ti = intercepted.ti;
 
         resetMatcher(ti, intercepted.newSequence);
-        boolean isMatching = isMatching(ti);
 
-        if (!isMatching) {
-            handleNonMatchingSequence(intercepted, ti);
+        if (!isMatching(ti)) {
+            handleNonMatchingSequence(intercepted);
         }
     }
 
@@ -121,9 +120,9 @@ public aspect TestingCore {
         return ti.getMatcher().matches() || ti.getMatcher().hitEnd();
     }
 
-    private void handleNonMatchingSequence(InterceptedMethodInformation intercepted, TestingInformation ti) {
+    private void handleNonMatchingSequence(InterceptedMethodInformation intercepted) {
         showError(intercepted);
-        if (ti.getAbort()) {
+        if (intercepted.ti.getAbort()) {
             abort();
         } else {
             continueExecution();
