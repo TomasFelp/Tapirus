@@ -96,25 +96,25 @@ public aspect TestingCore {
     
     private void retrieveObjectFields(JoinPoint thisJoinPoint) {
     	
-    	// Crear un objeto para inspeccionar
-    	Object objeto = thisJoinPoint.getThis();
+    	// Create an object to inspect
+    	Object object = thisJoinPoint.getThis();
 
-        // Obtener la clase del objeto
-        Class<?> clase = objeto.getClass();
-        System.out.println("Se llamo la ejecucion de retrieveObjectFields para: "+thisJoinPoint.getSignature().getDeclaringTypeName()+" ------------");
-        // Obtener todos los campos de la clase, incluyendo los privados
-        Field[] campos = clase.getDeclaredFields();
+        // Get the class of the object
+        Class<?> clase = object.getClass();
+        System.out.println("intercepted object: "+thisJoinPoint.getSignature().getDeclaringTypeName()+" ------------");
+        // Get all the fields of the class, including the private ones
+        Field[] fields = clase.getDeclaredFields();
 
-        // Iterar sobre los campos e imprimir sus nombres y valores
-        for (Field campo : campos) {
-            campo.setAccessible(true); // Hacer accesible incluso si es privado
-            String nombreCampo = campo.getName();
+        // Iterate over fields and print their names and values
+        for (Field field : fields) {
+        	field.setAccessible(true); // Make accessible even if private
+            String fieldName = field.getName();
 
-            if (!nombreCampo.startsWith("ajc$")) {
+            if (!fieldName.startsWith("ajc$")) {
 	            try {
-	                // Obtener el valor del campo para el objeto dado
-	                Object valorCampo = campo.get(objeto);
-	                System.out.println(nombreCampo + ": " + valorCampo);
+	                // Get field value for given object
+	                Object fieldValue = field.get(object);
+	                System.out.println(fieldName + ": " + fieldValue);
 	            } catch (IllegalAccessException e) {
 	                e.printStackTrace();
 	            }
