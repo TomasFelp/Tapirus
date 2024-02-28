@@ -3,8 +3,12 @@ package tapir;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.reflect.*;
+
 
 import org.aspectj.lang.JoinPoint;
+
+
 
 /**
  * AOP class to manage...
@@ -86,6 +90,38 @@ public aspect TestingCore {
     private void setObjectInformtion(InterceptedMethodInformation intercepted,JoinPoint thisJoinPoint) {
     	intercepted.ti=mapClassToTestingInformation.get(intercepted.className);
 		intercepted.objectHashCode=thisJoinPoint.getThis().hashCode();
+		
+		retrieveObjectFields(thisJoinPoint);
+    }
+    
+    private void retrieveObjectFields(JoinPoint thisJoinPoint) {
+    	
+    	// Crear un objeto para inspeccionar
+    	Object objeto = thisJoinPoint.getThis();
+
+        // Obtener la clase del objeto
+        Class<?> clase = objeto.getClass();
+        System.out.println("Se llamo la ejecucion de retrieveObjectFields para: "+thisJoinPoint.getSignature().getDeclaringTypeName()+" ------------");
+        // Obtener todos los campos de la clase, incluyendo los privados
+        Field[] campos = clase.getDeclaredFields();
+
+        // Iterar sobre los campos e imprimir sus nombres y valores
+        for (Field campo : campos) {
+            campo.setAccessible(true); // Hacer accesible incluso si es privado
+            String nombreCampo = campo.getName();
+
+            if (!nombreCampo.startsWith("ajc$")) {
+	            try {
+	                // Obtener el valor del campo para el objeto dado
+	                Object valorCampo = campo.get(objeto);
+	                System.out.println(nombreCampo + ": " + valorCampo);
+	            } catch (IllegalAccessException e) {
+	                e.printStackTrace();
+	            }
+            }
+        }
+        System.out.println("*******------**********------*********---------*************");
+    	
     }
     
     private void updateSequence(InterceptedMethodInformation intercepted){
