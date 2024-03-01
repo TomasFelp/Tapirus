@@ -1,5 +1,6 @@
 package tapir;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,7 +28,9 @@ public aspect TestingCore {
 	 * String is the target class
 	 */
 	public static HashMap<String, TestingInformation> mapClassToTestingInformation = null; 
-
+	
+	protected static HashMap<String, TestingInformation> mapMethodsToPreviousObjectState = null;
+	
 	/**
 	 * Initializes the test data before the main method is called. 
 	 */
@@ -38,60 +41,71 @@ public aspect TestingCore {
     	
     }
     
-	
-    /**
-     * 
-     */
+	/**
+	 * Completar... analizar el estado previo del objeo y guardarlo con el hash del objeto,metodo y clase para 
+	 * posteriormente usarlo en el after al armar la secuencia, guarda las precondiciones de estado. 
+	 * 
+	 * Buena suerte Tomás del futuro.
+	 */
+    before() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore)  && !within(TestingSetup) {
+    	
+    	
+    }
+    
+ 
     after() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore) {
-    	
-    	InterceptedMethodInformation intercepted = setInterceptedInformation(thisJoinPointStaticPart,thisJoinPoint);
-    	
-    	if (the_class_must_be_tested(intercepted) && the_method_must_be_tested(intercepted)) {
-	    	checkSequence(intercepted);
-    	}
-    }
-    
-    
-    private InterceptedMethodInformation setInterceptedInformation(JoinPoint.StaticPart thisJoinPointStaticPart, JoinPoint thisJoinPoint) {
-    	
-    	InterceptedMethodInformation intercepted=new InterceptedMethodInformation();
-    	
-    	setClassName(intercepted,thisJoinPointStaticPart);
-    	
-    	if (the_class_must_be_tested(intercepted)) {
-    		setObjectInformtion(intercepted,thisJoinPoint);
-    		initMapObjectsToCallSequence(intercepted);
-    		setMethodName(intercepted, thisJoinPoint);
+
+    	if (the_class_must_be_tested(thisJoinPoint)) {
+    		TestingInformation ti = getTestingInformation(thisJoinPoint); 		
+    		initSequence(thisJoinPoint);
     		
-    		if(the_method_must_be_tested(intercepted)) {
-    			updateSequence(intercepted);
-    		}	
+    		if(the_method_must_be_tested(thisJoinPoint)) {
+	    		updateSequence(thisJoinPoint);
+	    		resetMatcher(ti, getSequence(thisJoinPoint));
+
+	    		if(!isMatching(ti)) {
+	    			handleNonMatchingSequence(thisJoinPoint);
+
+	    		}
+    		}
     	}
+    }
+    
+    
+    private void initSequence(JoinPoint thisJoinPoint) {
     	
-    	return intercepted;
-    }
-    
-    private void setClassName(InterceptedMethodInformation intercepted,JoinPoint.StaticPart thisJoinPointStaticPart) {
-    	intercepted.className="class " + thisJoinPointStaticPart.getSignature().getDeclaringTypeName();
-    }
-    
-    private void setMethodName(InterceptedMethodInformation intercepted,JoinPoint thisJoinPoint) {
-    	intercepted.methodName=thisJoinPoint.getSignature().getDeclaringTypeName() +"."+ thisJoinPoint.getSignature().getName();
-    }
-    
-    private boolean the_class_must_be_tested(InterceptedMethodInformation intercepted) {
-    	return mapClassToTestingInformation.containsKey(intercepted.className);
-    }
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	
-    private boolean the_method_must_be_tested(InterceptedMethodInformation intercepted) {
-    	return intercepted.ti.getMapMethodsToSymbols().containsKey(intercepted.methodName);
+    	if(!ti.getMapObjectsToCallSequence().containsKey(objectHashCode)) {
+			ti.getMapObjectsToCallSequence().put(objectHashCode, "");
+		}
     }
     
-    private void setObjectInformtion(InterceptedMethodInformation intercepted,JoinPoint thisJoinPoint) {
-    	intercepted.ti=mapClassToTestingInformation.get(intercepted.className);
-		intercepted.objectHashCode=thisJoinPoint.getThis().hashCode();
-		
-		retrieveObjectFields(thisJoinPoint);
+    
+    private String getClassName(JoinPoint thisJoinPoint) {
+    	return "class " + thisJoinPoint.getStaticPart().getSignature().getDeclaringTypeName();
+    }
+    
+    private String getMethodName(JoinPoint thisJoinPoint) {
+    	return thisJoinPoint.getSignature().getDeclaringTypeName() +"."+ thisJoinPoint.getSignature().getName();
+    }
+    
+    private boolean the_class_must_be_tested(JoinPoint thisJoinPoint) {
+    	return mapClassToTestingInformation.containsKey(getClassName(thisJoinPoint));
+    }
+    
+    
+    private boolean the_method_must_be_tested(JoinPoint thisJoinPoint) {
+    	return getTestingInformation(thisJoinPoint).getMapMethodsToSymbols().containsKey(getMethodName(thisJoinPoint));
+    }
+    
+    private TestingInformation getTestingInformation(JoinPoint thisJoinPoint) {
+    	return mapClassToTestingInformation.get(getClassName(thisJoinPoint));
+    }
+    
+    private int getObjectHashCode(JoinPoint thisJoinPoint) {
+    	return thisJoinPoint.getThis().hashCode();
     }
     
     private void retrieveObjectFields(JoinPoint thisJoinPoint) {
@@ -101,51 +115,57 @@ public aspect TestingCore {
 
         // Get the class of the object
         Class<?> clase = object.getClass();
-        System.out.println("intercepted object: "+thisJoinPoint.getSignature().getDeclaringTypeName()+" ------------");
+        //System.out.println("intercepted: "+thisJoinPoint.getSignature().getDeclaringTypeName() +"."+ thisJoinPoint.getSignature().getName()+" ------------");
+
         // Get all the fields of the class, including the private ones
-        Field[] fields = clase.getDeclaredFields();
+        Field[] attributes = clase.getDeclaredFields();
 
+        ObjectState interceptedObject = new ObjectState();
+        
         // Iterate over fields and print their names and values
-        for (Field field : fields) {
-        	field.setAccessible(true); // Make accessible even if private
-            String fieldName = field.getName();
+        for (Field attribute : attributes) {
+        	attribute.setAccessible(true); // Make accessible even if private
+            String attributeName = attribute.getName();
 
-            if (!fieldName.startsWith("ajc$")) {
+            if (!attributeName.startsWith("ajc$")) {
 	            try {
 	                // Get field value for given object
-	                Object fieldValue = field.get(object);
-	                System.out.println(fieldName + ": " + fieldValue);
+	                Object attributeValue = attribute.get(object);
+	                interceptedObject.attribute.add(attributeName);
+	                interceptedObject.value.add(attributeValue);
+	                //System.out.println(attributeName + ": " + attributeValue);
 	            } catch (IllegalAccessException e) {
 	                e.printStackTrace();
 	            }
             }
         }
-        System.out.println("*******------**********------*********---------*************");
+        
+        /*
+        for (int i=0; i < interceptedObject.attribute.size(); i++) {
+        	System.out.println(interceptedObject.attribute.get(i) + ": " + interceptedObject.value.get(i));
+        }
+        */
+        
+        //System.out.println("----------------------------------------------------");
     	
     }
     
-    private void updateSequence(InterceptedMethodInformation intercepted){
-    	String methodSymbol = intercepted.ti.getMapMethodsToSymbols().get(intercepted.methodName);
-    	intercepted.newSequence=intercepted.ti.getMapObjectsToCallSequence().get(intercepted.objectHashCode).concat(methodSymbol);
-    	intercepted.ti.getMapObjectsToCallSequence().put(intercepted.objectHashCode, intercepted.newSequence);
+    private void updateSequence(JoinPoint thisJoinPoint) {
+    	
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
+    	String methodSymbol = ti.getMapMethodsToSymbols().get(getMethodName(thisJoinPoint));
+    	String newSequence = getSequence(thisJoinPoint).concat(methodSymbol);
+    	
+    	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
     }
     
-    private void initMapObjectsToCallSequence(InterceptedMethodInformation intercepted) {
-    	TestingInformation ti = intercepted.ti;
-    	if(!ti.getMapObjectsToCallSequence().containsKey(intercepted.objectHashCode)) {
-			ti.getMapObjectsToCallSequence().put(intercepted.objectHashCode, "");
-		}
-    	intercepted.ti=ti;
-    }
-    
-    private void checkSequence(InterceptedMethodInformation intercepted) {
-        TestingInformation ti = intercepted.ti;
-
-        resetMatcher(ti, intercepted.newSequence);
-
-        if (!isMatching(ti)) {
-            handleNonMatchingSequence(intercepted);
-        }
+    private String getSequence(JoinPoint thisJoinPoint) {
+    	
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
+    	    	
+    	return ti.getMapObjectsToCallSequence().get(objectHashCode);
     }
 
     private void resetMatcher(TestingInformation ti, String newSequence) {
@@ -156,18 +176,18 @@ public aspect TestingCore {
         return ti.getMatcher().matches() || ti.getMatcher().hitEnd();
     }
 
-    private void handleNonMatchingSequence(InterceptedMethodInformation intercepted) {
-        showError(intercepted);
-        if (intercepted.ti.getAbort()) {
+    private void handleNonMatchingSequence(JoinPoint thisJoinPoint) {
+        showError(thisJoinPoint);
+        if (getTestingInformation(thisJoinPoint).getAbort()) {
             abort();
         } else {
             continueExecution();
         }
     }
     
-    private void showError(InterceptedMethodInformation intercepted){
+    private void showError(JoinPoint thisJoinPoint){
     	showErrorFoundMessage();
-    	showErrorInformation(intercepted);
+    	showErrorInformation(thisJoinPoint);
     }
     
     private void showErrorFoundMessage() {
@@ -176,12 +196,16 @@ public aspect TestingCore {
 		System.out.println("-------------------------------");
     }
     
-    private void showErrorInformation(InterceptedMethodInformation intercepted){
-		System.out.println("Class: "+ intercepted.className);
-		System.out.println("Object Code: "+ intercepted.objectHashCode);
-		System.out.println("Method Executed: "+ intercepted.methodName);
-		System.out.println("Regular Expression: "+ intercepted.ti.getRegularExpression());
-		System.out.println("Execution Sequence: "+ intercepted.newSequence);
+    private void showErrorInformation(JoinPoint thisJoinPoint){
+    	
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	
+		System.out.println("Class: "+ getClassName(thisJoinPoint));
+		System.out.println("Object Code: "+ getObjectHashCode(thisJoinPoint));
+		System.out.println("Method Executed: "+ getMethodName(thisJoinPoint));
+		System.out.println("Regular Expression: "+ ti.getRegularExpression());
+		System.out.println("Execution Sequence: "+ ti.getMapObjectsToCallSequence().get(objectHashCode));
     }
     
     private void abort(){
@@ -205,20 +229,20 @@ public aspect TestingCore {
 		System.out.println("--  CONTINUING EXECUTION... ---");
 		System.out.println("-------------------------------");
     }
-    
+     
     /**
-     * This class is intended to encapsulate all the relevant information that is obtained from the intercepted method.
+     * This class is intended to store the attributes and their values of the intercepted objects.
      */
-    protected class InterceptedMethodInformation {
+    protected class ObjectState {
     	
-    	protected String className="";
-    	protected int objectHashCode=-1;
-    	protected String methodName="";
-    	protected TestingInformation ti=null;
-    	protected String newSequence="";
-    	
-    	protected boolean the_class_must_be_tested=false;
-    	
-    	
+    	protected ArrayList<String> attribute;
+    	protected ArrayList<Object> value;
+
+        public ObjectState() {
+            this.attribute =  new ArrayList<String>();
+            this.value =  new ArrayList<Object>();
+        }
     }
+        
+        
 }
