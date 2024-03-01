@@ -29,7 +29,7 @@ public aspect TestingCore {
 	 */
 	public static HashMap<String, TestingInformation> mapClassToTestingInformation = null; 
 	
-	protected static HashMap<String, TestingInformation> mapMethodsToPreviousObjectState = null;
+	protected static HashMap<String, ObjectState> mapMethodsToPreviousObjectState = null;
 	
 	/**
 	 * Initializes the test data before the main method is called. 
@@ -38,7 +38,7 @@ public aspect TestingCore {
     before() : mainMethod()
     {
     	TestingSetup.setup();
-    	
+    	mapMethodsToPreviousObjectState = new HashMap<String, ObjectState>();
     }
     
 	/**
@@ -49,17 +49,20 @@ public aspect TestingCore {
 	 */
     before() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore)  && !within(TestingSetup) {
     	
+    	if (the_class_must_be_tested(thisJoinPoint) && the_method_must_be_tested(thisJoinPoint)) {
+    		mapMethodsToPreviousObjectState.put(getObjectStateIdentifier(thisJoinPoint), retrieveObjectFields(thisJoinPoint));
+    	}
     	
     }
     
  
     after() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore) {
 
-    	if (the_class_must_be_tested(thisJoinPoint)) {
-    		TestingInformation ti = getTestingInformation(thisJoinPoint); 		
+    	if (the_class_must_be_tested(thisJoinPoint)) { 		
     		initSequence(thisJoinPoint);
     		
     		if(the_method_must_be_tested(thisJoinPoint)) {
+    			TestingInformation ti = getTestingInformation(thisJoinPoint);
 	    		updateSequence(thisJoinPoint);
 	    		resetMatcher(ti, getSequence(thisJoinPoint));
 
@@ -108,46 +111,42 @@ public aspect TestingCore {
     	return thisJoinPoint.getThis().hashCode();
     }
     
-    private void retrieveObjectFields(JoinPoint thisJoinPoint) {
+    private ObjectState retrieveObjectFields(JoinPoint thisJoinPoint) {
     	
-    	// Create an object to inspect
     	Object object = thisJoinPoint.getThis();
-
-        // Get the class of the object
         Class<?> clase = object.getClass();
-        //System.out.println("intercepted: "+thisJoinPoint.getSignature().getDeclaringTypeName() +"."+ thisJoinPoint.getSignature().getName()+" ------------");
-
-        // Get all the fields of the class, including the private ones
         Field[] attributes = clase.getDeclaredFields();
-
         ObjectState interceptedObject = new ObjectState();
         
-        // Iterate over fields and print their names and values
+
         for (Field attribute : attributes) {
-        	attribute.setAccessible(true); // Make accessible even if private
+        	attribute.setAccessible(true); 
             String attributeName = attribute.getName();
 
             if (!attributeName.startsWith("ajc$")) {
 	            try {
-	                // Get field value for given object
 	                Object attributeValue = attribute.get(object);
 	                interceptedObject.attribute.add(attributeName);
 	                interceptedObject.value.add(attributeValue);
-	                //System.out.println(attributeName + ": " + attributeValue);
 	            } catch (IllegalAccessException e) {
 	                e.printStackTrace();
 	            }
             }
         }
         
-        /*
-        for (int i=0; i < interceptedObject.attribute.size(); i++) {
-        	System.out.println(interceptedObject.attribute.get(i) + ": " + interceptedObject.value.get(i));
+        return interceptedObject;
+    }
+    
+    private void printObjectState(ObjectState objectState, JoinPoint thisJoinPoint) {
+    	System.out.println("intercepted: "+getObjectStateIdentifier(thisJoinPoint)+" ------------");
+    	for (int i=0; i < objectState.attribute.size(); i++) {
+        	System.out.println(objectState.attribute.get(i) + ": " + objectState.value.get(i));
         }
-        */
-        
-        //System.out.println("----------------------------------------------------");
-    	
+    	System.out.println("----------------------------------------------------");
+    }
+    
+    private String getObjectStateIdentifier(JoinPoint thisJoinPoint) {
+    	return getMethodName(thisJoinPoint)+"."+getObjectHashCode(thisJoinPoint);
     }
     
     private void updateSequence(JoinPoint thisJoinPoint) {
@@ -158,6 +157,13 @@ public aspect TestingCore {
     	String newSequence = getSequence(thisJoinPoint).concat(methodSymbol);
     	
     	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
+    	
+    	//&&& Codigo auxiliar para test:
+    	System.out.println("Before:");
+    	printObjectState(mapMethodsToPreviousObjectState.get(getObjectStateIdentifier(thisJoinPoint)), thisJoinPoint);
+    	System.out.println("After:");
+    	printObjectState(retrieveObjectFields(thisJoinPoint), thisJoinPoint);
+    	System.out.println("*******************************************************************");
     }
     
     private String getSequence(JoinPoint thisJoinPoint) {
