@@ -24,7 +24,7 @@ public class RegularExpressionHelper {
 	/*
 	 * For every element of the sequence that does not have a precondition or postcondition, add a generic by default.
 	 */
-	public static String addDefaultStates(String regularExpression) {
+	private static String addDefaultStates(String regularExpression) {
         StringBuilder result = new StringBuilder();
         boolean insideState = false;
 
@@ -90,9 +90,9 @@ public class RegularExpressionHelper {
 
 
     /*
-     * Lexicographically orders the tuples found in each condition.
+     * Lexicographically orders the tuples found in each state.
      */
-	public static String sortTuplesInState(String input) {
+	private static String sortTuplesInState(String input) {
         String patternState = "\\"+STATE_START+"(.*?)\\"+STATE_END;
         Pattern pattern = Pattern.compile(patternState);
         Matcher matcher = pattern.matcher(input);
@@ -112,7 +112,7 @@ public class RegularExpressionHelper {
 	/*
      * Complete states with default conditions 
      */
-    public static String completeDefaultConditions(String input) {
+	private static String completeDefaultConditions(String input) {
         StringBuilder result = new StringBuilder();
 
         for (char c : input.toCharArray()) {
@@ -133,7 +133,7 @@ public class RegularExpressionHelper {
      * Some characters used to indicate the states are reserved by regex, 
      * this function identifies them and indicates that they should be taken literally
      */
-    public static String indicateLiteralCharacters(String input) {
+    private static String indicateLiteralCharacters(String input) {
         StringBuilder result = new StringBuilder();
 
         boolean insideState = false;
