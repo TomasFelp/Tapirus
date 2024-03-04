@@ -11,6 +11,7 @@ public class TestingInformation {
 	protected Pattern regularExpression = null; 
 	protected Matcher matcher = null;
 	protected boolean abort = true;
+	protected boolean modalTestType = false;
 	
 	/**
 	 * @param targetClass
@@ -27,6 +28,7 @@ public class TestingInformation {
 		this.regularExpression = regularExpression;
 		this.matcher = matcher;
 		this.abort = abort;
+		setModalTypeTest(RegularExpressionHelper.is_regular_expression_with_states(regularExpression.toString()));
 	}
 	
 	/**
@@ -76,6 +78,7 @@ public class TestingInformation {
 	 */
 	public void setRegularExpression(Pattern regularExpression) {
 		this.regularExpression = regularExpression;
+		setModalTypeTest(RegularExpressionHelper.is_regular_expression_with_states(regularExpression.toString()));
 	}
 	/**
 	 * @return the matcher
@@ -105,9 +108,23 @@ public class TestingInformation {
 	}	
 	
 	/**
-	 * @param abort the abort to set
+	 * @param abort the abort to get
 	 */
 	public boolean getAbort() {
 		return this.abort;
+	}	
+	
+	/**
+	 * @param modalTestType the modalTestType to set
+	 */
+	private void setModalTypeTest(boolean modalTestType) {
+		this.modalTestType = modalTestType;
+	}	
+	
+	/**
+	 * @param modalTestType the modalTestType to get
+	 */
+	public boolean isModalTestType() {
+		return this.modalTestType;
 	}	
 }

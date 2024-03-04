@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.reflect.*;
-
-
 import org.aspectj.lang.JoinPoint;
+import tapir.RegularExpressionHelper;
 
 
 
@@ -49,7 +48,7 @@ public aspect TestingCore {
 	 */
     before() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore)  && !within(TestingSetup) {
     	
-    	if (the_class_must_be_tested(thisJoinPoint) && the_method_must_be_tested(thisJoinPoint)) {
+    	if (the_class_must_be_tested(thisJoinPoint) && the_method_must_be_tested(thisJoinPoint) && getTestingInformation(thisJoinPoint).isModalTestType()) {
     		mapMethodsToPreviousObjectState.put(getObjectStateIdentifier(thisJoinPoint), retrieveObjectFields(thisJoinPoint));
     	}
     	
@@ -137,12 +136,22 @@ public aspect TestingCore {
         return interceptedObject;
     }
     
-    private void printObjectState(ObjectState objectState, JoinPoint thisJoinPoint) {
-    	System.out.println("intercepted: "+getObjectStateIdentifier(thisJoinPoint)+" ------------");
-    	for (int i=0; i < objectState.attribute.size(); i++) {
-        	System.out.println(objectState.attribute.get(i) + ": " + objectState.value.get(i));
+    /*
+     * Return a string made up of tuples (attribute=value) according to the state of the object
+     */
+    private String normalizeObjectState(ObjectState objectState, JoinPoint thisJoinPoint) {
+        StringBuilder result = new StringBuilder();
+        
+
+        for (int i = 0; i < objectState.attribute.size(); i++) {
+            result.append("(").append(objectState.attribute.get(i)).append("=").append(objectState.value.get(i)).append("),");
         }
-    	System.out.println("----------------------------------------------------");
+        
+        if (result.length() > 0) {
+            result.delete(result.length() - 1, result.length());
+        }
+
+        return RegularExpressionHelper.sortTuples(result.toString());
     }
     
     private String getObjectStateIdentifier(JoinPoint thisJoinPoint) {
@@ -151,20 +160,58 @@ public aspect TestingCore {
     
     private void updateSequence(JoinPoint thisJoinPoint) {
     	
+    	if(getTestingInformation(thisJoinPoint).isModalTestType()) {
+    		updateModalSequence(thisJoinPoint);
+    	}else {
+    		updateUnimodalSequence(thisJoinPoint);
+    	}
+    }
+    
+    /*
+     * Updates sequence formed only by method symbols
+     */
+    private void updateUnimodalSequence(JoinPoint thisJoinPoint) {
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
     	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	String methodSymbol = ti.getMapMethodsToSymbols().get(getMethodName(thisJoinPoint));
     	String newSequence = getSequence(thisJoinPoint).concat(methodSymbol);
     	
     	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
-    	
-    	//&&& Codigo auxiliar para test:
-    	System.out.println("Before:");
-    	printObjectState(mapMethodsToPreviousObjectState.get(getObjectStateIdentifier(thisJoinPoint)), thisJoinPoint);
-    	System.out.println("After:");
-    	printObjectState(retrieveObjectFields(thisJoinPoint), thisJoinPoint);
-    	System.out.println("*******************************************************************");
     }
+    
+    /*
+     * Updates sequence made up of method symbols and object states
+     */
+    private void updateModalSequence(JoinPoint thisJoinPoint) {
+    	
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
+    	String methodSymbol = ti.getMapMethodsToSymbols().get(getMethodName(thisJoinPoint));
+    	
+    	String newSequence = getSequence(thisJoinPoint) + getPreCondition(thisJoinPoint) + methodSymbol + getPostCondition(thisJoinPoint);
+    	
+    	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
+
+    }
+    
+    /*
+     * Gets the pre-execution state and returns it ready to add to the sequence
+     */
+    private String getPreCondition(JoinPoint thisJoinPoint) {
+    	String result = normalizeObjectState(mapMethodsToPreviousObjectState.get(getObjectStateIdentifier(thisJoinPoint)), thisJoinPoint);
+    
+    	return RegularExpressionHelper.makePrecondition(result);
+    }
+    
+    /*
+     * Gets the post-execution state and returns it ready to add to the sequence
+     */
+    private String getPostCondition(JoinPoint thisJoinPoint) {
+    	String result = normalizeObjectState(retrieveObjectFields(thisJoinPoint), thisJoinPoint);
+    	
+    	return RegularExpressionHelper.makePostScondition(result);
+    }
+    
     
     private String getSequence(JoinPoint thisJoinPoint) {
     	
@@ -250,5 +297,5 @@ public aspect TestingCore {
         }
     }
         
-        
 }
+

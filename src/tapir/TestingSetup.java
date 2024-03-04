@@ -27,8 +27,9 @@ public class TestingSetup {
 		mapMethodsToSymbols.put("main.Account.deposit", "d");
 		mapMethodsToSymbols.put("main.Account.withdraw", "w");
 		mapMethodsToSymbols.put("main.Account.close", "x");
+		
 		//Definition of the regular expression
-		regularExpression = Pattern.compile("cvd(d|w)*x");
+		regularExpression = ModalPattern.compile("cvd(d|w)*:(amount=0);>-x");
 		//Initializing the regular expressions controller
 		matcher = regularExpression.matcher("");	
 		// All information related to how the Account class is testing is store in a TestingInformation instance
