@@ -257,7 +257,7 @@ public aspect TestingCore {
 		System.out.println("Class: "+ getClassName(thisJoinPoint));
 		System.out.println("Object Code: "+ getObjectHashCode(thisJoinPoint));
 		System.out.println("Method Executed: "+ getMethodName(thisJoinPoint));
-		System.out.println("Regular Expression: "+ ti.getRegularExpression());
+		System.out.println("Regular Expression: "+ RegularExpressionHelper.simplifyRegularExpressionForView(ti.getRegularExpression().toString()));
 		System.out.println("Execution Sequence: "+ ti.getMapObjectsToCallSequence().get(objectHashCode));
     }
     

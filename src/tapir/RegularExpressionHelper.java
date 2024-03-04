@@ -155,6 +155,20 @@ public class RegularExpressionHelper {
         return result.toString();
     }
     
+    
+    /*
+     * Returns a string without the changes added in the precompilation
+     */
+    public static String simplifyRegularExpressionForView(String input) {
+    	
+    	String result = input.replaceAll("\\Q"+DEFAULT_STATE_CONTENT+"\\E","");
+    	result = result.replaceAll("\\Q"+EMPTY_PRECONDITION+"\\E","");
+    	result = result.replaceAll("\\Q"+EMPTY_POSTCONDITION+"\\E","");
+    	result = result.replaceAll("\\\\","");
+    	
+    	return result;
+    }
+    
     /*
      * receives a state in the form of a list of tuples and concatenates them with the precondition syntax
      */
