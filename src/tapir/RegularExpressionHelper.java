@@ -10,6 +10,8 @@ import java.util.Comparator;
 public class RegularExpressionHelper {
 	
 	private static final String DEFAULT_STATE_CONTENT = "[^:;>-]*";
+	private static final String DEFAULT_PRECONDITION = ":[^:;>-]*;>-";
+	private static final String DEFAULT_POSTCONDITION = "-<:[^:;>-]*;";
 	private static final Character STATE_START = ':';
 	private static final Character STATE_END = ';';
 	private static final String PRECONDITION = ";>-";
@@ -181,6 +183,36 @@ public class RegularExpressionHelper {
      */
     public static String makePostScondition(String input) {
     	return POSTCONDITION + input + STATE_END;
+    }
+    
+    /*
+	 * Removes state from all methods except the last one
+	 */
+	public static String simplifySequence(String input) {
+		
+		int penultimatePosition = findPenultimatePosition(input, STATE_START);
+
+        String substringStart = input.substring(0, penultimatePosition);
+        substringStart = substringStart.replaceAll(DEFAULT_PRECONDITION, "");
+        substringStart = substringStart.replaceAll(DEFAULT_POSTCONDITION, "");
+        String substringEnd = input.substring(penultimatePosition, input.length());
+        String result = substringStart + substringEnd;
+
+        return result;
+	}
+ 
+	/*
+	 * Find the penultimate position of the indicated character
+	 */
+    private static int findPenultimatePosition(String string, char character) {
+        int lastPosition = string.lastIndexOf(character);
+
+        if (lastPosition != -1) {
+            int penultimatePosition = string.lastIndexOf(character, lastPosition - 1);
+            return penultimatePosition;
+        }
+
+        return -1;
     }
     
     /*

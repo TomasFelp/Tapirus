@@ -258,7 +258,20 @@ public aspect TestingCore {
 		System.out.println("Object Code: "+ getObjectHashCode(thisJoinPoint));
 		System.out.println("Method Executed: "+ getMethodName(thisJoinPoint));
 		System.out.println("Regular Expression: "+ RegularExpressionHelper.simplifyRegularExpressionForView(ti.getRegularExpression().toString()));
-		System.out.println("Execution Sequence: "+ ti.getMapObjectsToCallSequence().get(objectHashCode));
+		System.out.println("Execution Sequence: "+ getSimplifiedSequence(thisJoinPoint));
+    }
+    
+    private String getSimplifiedSequence(JoinPoint thisJoinPoint) {
+    	int objectHashCode = getObjectHashCode(thisJoinPoint);
+    	TestingInformation ti = getTestingInformation(thisJoinPoint);
+    	
+    	String result = ti.getMapObjectsToCallSequence().get(objectHashCode);
+    	
+    	if(ti.isModalTestType()) {
+    		result = RegularExpressionHelper.simplifySequence(result);
+    	}
+    	
+    	return result;
     }
     
     private void abort(){
