@@ -246,6 +246,57 @@ public class RegularExpressionHelper {
     }
     
     /*
+     * Replaces all A!=X with a regular expression A=Y in which Y matches everything grater than natural X
+     */
+    public static String regularizeGreaterOrEqual(String input) {
+    	
+    	StringBuilder result = new StringBuilder();
+        int startIndex = 0;
+        String value;
+        
+        while (startIndex < input.length()) {
+            int notEqualIndex = input.indexOf(">=", startIndex);
+            if (notEqualIndex == -1) {
+                result.append(input.substring(startIndex));
+                break;
+            }
+
+            result.append(input.substring(startIndex, notEqualIndex + 2)); // Including !=
+            int endIndex = input.indexOf(")", notEqualIndex);
+            if (endIndex == -1) {
+                result.append(input.substring(notEqualIndex + 2));
+                break;
+            }
+            
+            value = input.substring(notEqualIndex + 2, endIndex);
+            result.append(getRegularExpressionforGreaterOrEqual(value));
+            startIndex = endIndex + 1;
+        }
+
+        return result.toString();
+    	
+    }
+    
+    
+    /*
+     * Returns a regular expression that accepts only natural numbers greater than the one contained in the received string
+     */
+    private static String getRegularExpressionforGreaterOrEqual(String input) {
+        StringBuilder result = new StringBuilder();
+        int length = input.length();
+
+        for (int i = 0; i < length; i++) {
+            String subcadena = input.substring(0, i );
+            int posicion = length - 1 - i;
+            result.append(subcadena).append("["+ ( Character.getNumericValue(input.charAt(i)) + 1 ) +"-9]").append("\\d{"+posicion+",}|");
+        }
+
+        result.append("[1-9]\\d{"+length+",}");
+        
+        return result.toString();
+    }
+    
+    /*
      * It precompiles a text with a certain format to bring it to a valid regex regular expression.
      * 
      */
