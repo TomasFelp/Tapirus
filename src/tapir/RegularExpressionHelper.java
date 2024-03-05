@@ -216,6 +216,36 @@ public class RegularExpressionHelper {
     }
     
     /*
+     * Replaces all A!=X with a regular expression A=Y in which Y matches everything other than X
+     */
+    public static String regularizeDifferentFrom(String input) {
+        StringBuilder result = new StringBuilder();
+        int startIndex = 0;
+        String value;
+        
+        while (startIndex < input.length()) {
+            int notEqualIndex = input.indexOf("!=", startIndex);
+            if (notEqualIndex == -1) {
+                result.append(input.substring(startIndex));
+                break;
+            }
+
+            result.append(input.substring(startIndex, notEqualIndex + 2)); // Including !=
+            int endIndex = input.indexOf(")", notEqualIndex);
+            if (endIndex == -1) {
+                result.append(input.substring(notEqualIndex + 2));
+                break;
+            }
+            
+            value = input.substring(notEqualIndex + 2, endIndex);
+            result.append("("+value+".+|(?!"+value+").*)"+")");
+            startIndex = endIndex + 1;
+        }
+
+        return result.toString();
+    }
+    
+    /*
      * It precompiles a text with a certain format to bring it to a valid regex regular expression.
      * 
      */
@@ -230,7 +260,7 @@ public class RegularExpressionHelper {
     }
     
     public static void main(String[] args) {
-        String input = "a-<:(x3!=true),(x2=7),(x1=5);bb:(x=true);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a=true);";
+        String input = "a-<:(x3!=true),(x2=7),(x1=5);bb:(x!=true);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
         String resultado = preCompile(input);
         System.out.println(resultado);
     }
