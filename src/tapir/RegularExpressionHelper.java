@@ -20,9 +20,7 @@ public class RegularExpressionHelper {
 	private static final String EMPTY_POSTCONDITION = "-<:;";
 
 	
-	/*
-	 * For every element of the sequence that does not have a precondition or postcondition, add a generic by default.
-	 */
+
 	/*
 	 * For every element of the sequence that does not have a precondition or postcondition, add a generic by default.
 	 */
@@ -216,72 +214,88 @@ public class RegularExpressionHelper {
     }
     
     /*
-     * Replaces all A!=X with a regular expression A=Y in which Y matches everything other than X
-     */
-    public static String regularizeDifferentFrom(String input) {
-        StringBuilder result = new StringBuilder();
-        int startIndex = 0;
-        String value;
+	 *  Replace the comparators and their values with regular expressions that match them
+	 */
+	public static String normalizeComparators(String input) {
+        String result = input;
+        String[] operators = {">=", "<", "<=", "!=", ">"};
+        String operator;
         
-        while (startIndex < input.length()) {
-            int notEqualIndex = input.indexOf("!=", startIndex);
-            if (notEqualIndex == -1) {
-                result.append(input.substring(startIndex));
-                break;
-            }
+        // Acceso e impresión de los elementos del arreglo
+        for (int i = 0; i < operators.length; i++) {
+        	operator = operators[i];
+	        // Buscar todas las ocurrencias de la subcadena del operador precedida por ":" y seguida por ";"
+	        String patron = operator + "[^\\;\\,\\)=-]*\\)";
+	        Pattern pattern = Pattern.compile(patron);
+	        Matcher matcher = pattern.matcher(input);
+	
+	        while (matcher.find()) {
+	            // Obtener la subcadena encontrada y convertirla a mayúsculas
+	            String value = matcher.group();
 
-            result.append(input.substring(startIndex, notEqualIndex + 2)); // Including !=
-            int endIndex = input.indexOf(")", notEqualIndex);
-            if (endIndex == -1) {
-                result.append(input.substring(notEqualIndex + 2));
-                break;
+	            String regularExpressionForValue = value.replaceFirst(operator, "");
+	            regularExpressionForValue = regularExpressionForValue.replace(")", "");
+	            
+	            switch (operator) {
+                case ">=":
+                	regularExpressionForValue = "=" + getRegularExpressionforGreaterOrEqual(regularExpressionForValue) + ")";
+                    break;
+                case "<":
+                    //System.out.println("Caso <: Realizar acciones para menor");
+                    break;
+                case "<=":
+                    //System.out.println("Caso <=: Realizar acciones para menor o igual");
+                    break;
+                case "!=":
+                    regularExpressionForValue = "=" + getRegularExpressionforDifferentFrom(regularExpressionForValue) + ")";
+                    break;
+                case ">":
+                	regularExpressionForValue = "=" + getRegularExpressionforGreater(regularExpressionForValue) + ")";
+                    break;
+                default:
+                    break;
             }
-            
-            value = input.substring(notEqualIndex + 2, endIndex);
-            result.append("("+value+".+|(?!"+value+").*)"+")");
-            startIndex = endIndex + 1;
+	            
+	            // Reemplazar la subcadena original con la versión en mayúsculas
+	            result = result.replace(value, regularExpressionForValue);
+	        }
         }
 
-        return result.toString();
+        return result;
     }
     
     /*
-     * Replaces all A!=X with a regular expression A=Y in which Y matches everything grater than natural X
+     * Returns a regular expression that accepts only values different from the one received.
      */
-    public static String regularizeGreaterOrEqual(String input) {
-    	
-    	StringBuilder result = new StringBuilder();
-        int startIndex = 0;
-        String value;
-        
-        while (startIndex < input.length()) {
-            int notEqualIndex = input.indexOf(">=", startIndex);
-            if (notEqualIndex == -1) {
-                result.append(input.substring(startIndex));
-                break;
-            }
-
-            result.append(input.substring(startIndex, notEqualIndex + 2)); // Including !=
-            int endIndex = input.indexOf(")", notEqualIndex);
-            if (endIndex == -1) {
-                result.append(input.substring(notEqualIndex + 2));
-                break;
-            }
-            
-            value = input.substring(notEqualIndex + 2, endIndex);
-            result.append(getRegularExpressionforGreaterOrEqual(value));
-            startIndex = endIndex + 1;
-        }
-
-        return result.toString();
-    	
+    private static String getRegularExpressionforDifferentFrom(String input) {
+    	return "("+input+".+|(?!"+input+").*)";
     }
     
-    
     /*
-     * Returns a regular expression that accepts only natural numbers greater than the one contained in the received string
+     * Returns a regular expression that accepts only natural numbers greater or equal than the one contained in the received string
      */
     private static String getRegularExpressionforGreaterOrEqual(String input) {
+        StringBuilder result = new StringBuilder();
+        int length = input.length();
+
+        for (int i = 0; i < length -1 ; i++) {
+            String subcadena = input.substring(0, i );
+            int posicion = length - 1 - i;
+            result.append(subcadena).append("["+ ( Character.getNumericValue(input.charAt(i)) + 1 ) +"-9]").append("\\d{"+posicion+",}|");
+        }
+        
+        String subcadena = input.substring(0, length-1 );
+        
+        result.append(subcadena+"["+ ( Character.getNumericValue(input.charAt(length - 1))) +"-9]|");
+        result.append("[1-9]\\d{"+length+",}");
+        
+        return "(" + result.toString() + ")";
+    }
+    
+    /*
+     * Returns a regular expression that accepts only natural numbers greater or equal than the one contained in the received string
+     */
+    private static String getRegularExpressionforGreater(String input) {
         StringBuilder result = new StringBuilder();
         int length = input.length();
 
@@ -293,7 +307,7 @@ public class RegularExpressionHelper {
 
         result.append("[1-9]\\d{"+length+",}");
         
-        return result.toString();
+        return "(" + result.toString() +")";
     }
     
     /*
@@ -310,9 +324,17 @@ public class RegularExpressionHelper {
     	return result;
     }
     
+    /*
     public static void main(String[] args) {
         String input = "a-<:(x3!=true),(x2=7),(x1=5);bb:(x!=true);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
         String resultado = preCompile(input);
+        System.out.println(resultado);
+    }
+    */
+    
+    public static void main(String[] args) {
+        String input = "a-<:(x3!=true),(x2>7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
+        String resultado = normalizeComparators(input);
         System.out.println(resultado);
     }
         
