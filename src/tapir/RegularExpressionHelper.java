@@ -275,14 +275,8 @@ public class RegularExpressionHelper {
      * Returns a regular expression that accepts only natural numbers greater or equal than the one contained in the received string
      */
     private static String getRegularExpressionforGreaterOrEqual(String input) {
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = getRegularExpressionforGreater_aux(input);
         int length = input.length();
-
-        for (int i = 0; i < length -1 ; i++) {
-            String subcadena = input.substring(0, i );
-            int posicion = length - 1 - i;
-            result.append(subcadena).append("["+ ( Character.getNumericValue(input.charAt(i)) + 1 ) +"-9]").append("\\d{"+posicion+",}|");
-        }
         
         String subcadena = input.substring(0, length-1 );
         
@@ -296,7 +290,14 @@ public class RegularExpressionHelper {
      * Returns a regular expression that accepts only natural numbers greater than the one contained in the received string
      */
     private static String getRegularExpressionforGreater(String input) {
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = getRegularExpressionforGreater_aux(input);
+        result.append("[1-9]\\d{"+input.length()+",}");
+        
+        return "(" + result.toString() +")";
+    }
+    
+    private static StringBuilder getRegularExpressionforGreater_aux(String input) {
+    	StringBuilder result = new StringBuilder();
         int length = input.length();
 
         for (int i = 0; i < length; i++) {
@@ -304,17 +305,22 @@ public class RegularExpressionHelper {
             int posicion = length - 1 - i;
             result.append(subcadena).append("["+ ( Character.getNumericValue(input.charAt(i)) + 1 ) +"-9]").append("\\d{"+posicion+",}|");
         }
-
-        result.append("[1-9]\\d{"+length+",}");
         
-        return "(" + result.toString() +")";
+        return result;
     }
     
     /*
      * Returns a regular expression that accepts only natural numbers less than the content of the received string.
      */
     private static String getRegularExpressionforLess(String input) {
-        StringBuilder result = new StringBuilder();
+        StringBuilder result = getRegularExpressionforLess_aux(input);
+        result.append("\\d{0,"+(input.length() - 1)+"}");
+        
+        return "(" + result.toString() +")";
+    }
+    
+    private static StringBuilder getRegularExpressionforLess_aux(String input) {
+    	StringBuilder result = new StringBuilder();
         int length = input.length();
 
         for (int i = 0; i < length; i++) {
@@ -322,24 +328,15 @@ public class RegularExpressionHelper {
             int posicion = length - 1 - i;
             result.append(subcadena).append("[0-"+ ( Character.getNumericValue(input.charAt(i)) - 1  ) +"]").append("\\d{"+posicion+"}|");
         }
-
-        result.append("\\d{0,"+(input.length() - 1)+"}");
         
-        return "(" + result.toString() +")";
+        return result;
     }
 
     /*
      * Returns a regular expression that accepts only natural numbers less or equal than the content of the received string.
      */
     private static String getRegularExpressionforLessOrEqual(String input) {
-        StringBuilder result = new StringBuilder();
-        int length = input.length();
-
-        for (int i = 0; i < length; i++) {
-            String subcadena = input.substring(0, i );
-            int posicion = length - 1 - i;
-            result.append(subcadena).append("[0-"+ ( Character.getNumericValue(input.charAt(i)) - 1  ) +"]").append("\\d{"+posicion+"}|");
-        }
+        StringBuilder result = getRegularExpressionforLess_aux(input);
 
         result.append(input+"|");
         result.append("\\d{0,"+(input.length() - 1)+"}");
