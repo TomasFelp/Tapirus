@@ -241,7 +241,7 @@ public class RegularExpressionHelper {
                 	regularExpressionForValue = "=" + getRegularExpressionforGreaterOrEqual(regularExpressionForValue) + ")";
                     break;
                 case "<":
-                    //System.out.println("Caso <: Realizar acciones para menor");
+                	regularExpressionForValue = "=" + getRegularExpressionforLess(regularExpressionForValue) + ")";
                     break;
                 case "<=":
                     //System.out.println("Caso <=: Realizar acciones para menor o igual");
@@ -293,7 +293,7 @@ public class RegularExpressionHelper {
     }
     
     /*
-     * Returns a regular expression that accepts only natural numbers greater or equal than the one contained in the received string
+     * Returns a regular expression that accepts only natural numbers greater than the one contained in the received string
      */
     private static String getRegularExpressionforGreater(String input) {
         StringBuilder result = new StringBuilder();
@@ -310,6 +310,32 @@ public class RegularExpressionHelper {
         return "(" + result.toString() +")";
     }
     
+    /*
+     * Returns a regular expression that accepts only natural numbers less than the content of the received string.
+     */
+    private static String getRegularExpressionforLess(String input) {
+        StringBuilder result = new StringBuilder();
+        int length = input.length();
+
+        for (int i = 0; i < length; i++) {
+            String subcadena = input.substring(0, i );
+            int posicion = length - 1 - i;
+            result.append(subcadena).append("[0-"+ ( Character.getNumericValue(input.charAt(i)) - 1  ) +"]").append("\\d{"+posicion+"}|");
+        }
+
+        result.append("\\d{0,"+(input.length() - 1)+"}");
+        
+        return "(" + result.toString() +")";
+    }
+
+/*
+    public static void main(String[] args) {
+        String input = "3954";
+
+        String resultado = getRegularExpressionforLess(input);
+        System.out.println(resultado);
+    }
+    */
     /*
      * It precompiles a text with a certain format to bring it to a valid regex regular expression.
      * 
@@ -333,7 +359,7 @@ public class RegularExpressionHelper {
     */
     
     public static void main(String[] args) {
-        String input = "a-<:(x3!=true),(x2>7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
+        String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x<123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
         String resultado = normalizeComparators(input);
         System.out.println(resultado);
     }
