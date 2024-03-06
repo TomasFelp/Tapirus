@@ -244,7 +244,7 @@ public class RegularExpressionHelper {
                 	regularExpressionForValue = "=" + getRegularExpressionforLess(regularExpressionForValue) + ")";
                     break;
                 case "<=":
-                    //System.out.println("Caso <=: Realizar acciones para menor o igual");
+                	regularExpressionForValue = "=" + getRegularExpressionforLessOrEqual(regularExpressionForValue) + ")";
                     break;
                 case "!=":
                     regularExpressionForValue = "=" + getRegularExpressionforDifferentFrom(regularExpressionForValue) + ")";
@@ -328,6 +328,25 @@ public class RegularExpressionHelper {
         return "(" + result.toString() +")";
     }
 
+    /*
+     * Returns a regular expression that accepts only natural numbers less or equal than the content of the received string.
+     */
+    private static String getRegularExpressionforLessOrEqual(String input) {
+        StringBuilder result = new StringBuilder();
+        int length = input.length();
+
+        for (int i = 0; i < length; i++) {
+            String subcadena = input.substring(0, i );
+            int posicion = length - 1 - i;
+            result.append(subcadena).append("[0-"+ ( Character.getNumericValue(input.charAt(i)) - 1  ) +"]").append("\\d{"+posicion+"}|");
+        }
+
+        result.append(input+"|");
+        result.append("\\d{0,"+(input.length() - 1)+"}");
+        
+        return "(" + result.toString() +")";
+    }
+    
 /*
     public static void main(String[] args) {
         String input = "3954";
@@ -359,7 +378,7 @@ public class RegularExpressionHelper {
     */
     
     public static void main(String[] args) {
-        String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x<123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
+        String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x<=123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
         String resultado = normalizeComparators(input);
         System.out.println(resultado);
     }
