@@ -29,13 +29,15 @@ public class TestingSetup {
 		mapMethodsToSymbols.put("main.Account.close", "x");
 		
 		//Definition of the regular expression
-		regularExpression = ModalPattern.compile("cvd(d|w)*:(amount<2000);>-x");
+		String pattern = "cvd(d|w)*:(amount<2000);>-x";
+		regularExpression = ModalPattern.compile(pattern);
 		//Initializing the regular expressions controller
 		matcher = regularExpression.matcher("");	
 		// All information related to how the Account class is testing is store in a TestingInformation instance
-		TestingInformation ti = new TestingInformation(Account.class.toString(), mapObjectsToCallSequence, mapMethodsToSymbols, regularExpression, matcher, true);
+		TestingInformation ti = new TestingInformation(Account.class.toString(), mapObjectsToCallSequence, mapMethodsToSymbols, pattern, regularExpression, matcher, true);
 		TestingCore.mapClassToTestingInformation.put(Account.class.toString(), ti);
 		
+		/*
 		mapObjectsToCallSequence = null; 
 		mapMethodsToSymbols = null; 
 		regularExpression = null; 
@@ -57,6 +59,7 @@ public class TestingSetup {
 		// All information related to how the Check Account class is testing is store in a TestingInformation instance
 		ti = new TestingInformation(CheckAccount.class.toString(), mapObjectsToCallSequence, mapMethodsToSymbols, regularExpression, matcher, false);
 		TestingCore.mapClassToTestingInformation.put(CheckAccount.class.toString(), ti);
+		*/
 }
 	
 }

@@ -12,6 +12,7 @@ public class TestingInformation {
 	protected Matcher matcher = null;
 	protected boolean abort = true;
 	protected boolean modalTestType = false;
+	protected String simplifiedRegularExpression;
 	
 	/**
 	 * @param targetClass
@@ -21,7 +22,7 @@ public class TestingInformation {
 	 * @param matcher
 	 */
 	public TestingInformation(String targetClass, HashMap<Integer, String> mapObjectsToCallSequence,
-			HashMap<String, String> mapMethodsToSymbols, Pattern regularExpression, Matcher matcher, boolean abort) {
+			HashMap<String, String> mapMethodsToSymbols, String pattern, Pattern regularExpression, Matcher matcher, boolean abort) {
 		this.targetClass = targetClass;
 		this.mapObjectsToCallSequence = mapObjectsToCallSequence;
 		this.mapMethodsToSymbols = mapMethodsToSymbols;
@@ -29,6 +30,7 @@ public class TestingInformation {
 		this.matcher = matcher;
 		this.abort = abort;
 		setModalTypeTest(RegularExpressionHelper.is_regular_expression_with_states(regularExpression.toString()));
+		simplifiedRegularExpression = pattern;
 	}
 	
 	/**
@@ -73,6 +75,14 @@ public class TestingInformation {
 	public Pattern getRegularExpression() {
 		return regularExpression;
 	}
+	
+	/**
+	 * @return the simplifiedRegularExpression
+	 */
+	public String getSimplifiedRegularExpression() {
+		return simplifiedRegularExpression;
+	}
+	
 	/**
 	 * @param regularExpression the regularExpression to set
 	 */
