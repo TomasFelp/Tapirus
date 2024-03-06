@@ -134,25 +134,15 @@ public class RegularExpressionHelper {
      * this function identifies them and indicates that they should be taken literally
      */
     private static String indicateLiteralCharacters(String input) {
-        StringBuilder result = new StringBuilder();
+    	String result;
+    	
+    	result = input.replace(":(", ":\\(");
+    	result = result.replace(",(", ",\\(");
+    	result = result.replace("),", "\\),");
+    	result = result.replace(");", "\\);");
+    	result = result.replace(")"+DEFAULT_STATE_CONTENT, "\\)"+DEFAULT_STATE_CONTENT);
 
-        boolean insideState = false;
-
-        for (char c : input.toCharArray()) {
-            if (c == STATE_START) {
-                insideState = true;
-            } else if (c == STATE_END) {
-                insideState = false;
-            }
-
-            if (insideState && (c == '(' || c == ')')) {
-                result.append("\\");
-            }
-
-            result.append(c);
-        }
-
-        return result.toString();
+        return result;
     }
     
     
@@ -379,7 +369,7 @@ public class RegularExpressionHelper {
      */
     private static String getRegularExpressionforLess(String input) {
     	
-    	if(input.replaceAll("0", "").isBlank())
+    	if((input.replaceAll("0", "")).isBlank())
     		return "";
     	
         StringBuilder result = getRegularExpressionforLess_aux(input);
@@ -408,20 +398,14 @@ public class RegularExpressionHelper {
         for (int i = 0; i < length; i++) {
             String subcadena = input.substring(0, i );
             int posicion = length - 1 - i;
-            result.append(subcadena).append("[0-"+ ( convertToNatural(Character.getNumericValue(input.charAt(i)) - 1 )) +"]").append("\\d{"+posicion+"}|");
+            if(input.charAt(i)!='0')
+            	result.append(subcadena).append("[0-"+ ( Character.getNumericValue(input.charAt(i)) - 1 ) +"]").append("\\d{"+posicion+"}|");
+
         }
         
         return result;
     }
 
-    private static int convertToNatural(int a) {
-    	int result = a;
-    	
-    	if(a<0)
-    		result=0;
-    	
-    	return result;
-    }
     
 /*
     public static void main(String[] args) {
@@ -438,6 +422,7 @@ public class RegularExpressionHelper {
     public static String preCompile(String intput) {
     	
     	String result = sortTuplesInState(intput);
+    	result = normalizeComparators(result);
     	result = addDefaultStates(result);
     	result = completeDefaultConditions(result);
     	result = indicateLiteralCharacters(result);
@@ -454,9 +439,16 @@ public class RegularExpressionHelper {
     */
     
     public static void main(String[] args) {
-        String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-        String resultado = normalizeComparators(input);
+        //String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
+    	String input = "cvd(d|w)*:(amount<2000);>-x";
+        String resultado = preCompile(input);
         System.out.println(resultado);
+        
+        System.out.println("normalizeComparators -------------------------------------------------------------------");
+        System.out.println(normalizeComparators("cvd(d|w)*:(amount<2000);>-x"));
+        
+        System.out.println("<2000-------------------------------------------------------------------");
+        System.out.println(getRegularExpressionforLessOrEqualInteger("2000"));
     }
         
 }
