@@ -26,9 +26,9 @@ public aspect TestingCore {
 	/**
 	 * String is the target class
 	 */
-	public static HashMap<String, TestingInformation> mapClassToTestingInformation = null; 
+	protected static HashMap<String, TestingInformation> mapClassToTestingInformation = null; 
 	
-	protected static HashMap<String, ObjectState> mapMethodsToPreviousObjectState = null;
+	protected HashMap<String, ObjectState> mapMethodsToPreviousObjectState = null;
 	
 	/**
 	 * Initializes the test data before the main method is called. 
@@ -40,20 +40,21 @@ public aspect TestingCore {
     	mapMethodsToPreviousObjectState = new HashMap<String, ObjectState>();
     }
     
-	/**
-	 * Completar... analizar el estado previo del objeo y guardarlo con el hash del objeto,metodo y clase para 
-	 * posteriormente usarlo en el after al armar la secuencia, guarda las precondiciones de estado. 
-	 * 
-	 * Buena suerte Tomás del futuro.
-	 */
+
     before() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore)  && !within(TestingSetup) {
     	
-    	if (the_class_must_be_tested(thisJoinPoint) && the_method_must_be_tested(thisJoinPoint) && getTestingInformation(thisJoinPoint).isModalTestType()) {
+    	if (theInterceptedCallisOfModalInterest(thisJoinPoint)) {
     		mapMethodsToPreviousObjectState.put(getObjectStateIdentifier(thisJoinPoint), retrieveObjectFields(thisJoinPoint));
     	}
-    	
     }
     
+    private  boolean theInterceptedCallisOfModalInterest(JoinPoint thisJoinPoint) {
+    	return theInterceptedCallisOfInterest(thisJoinPoint) && getTestingInformation(thisJoinPoint).isModalTestType();
+    }
+    
+    private  boolean theInterceptedCallisOfInterest(JoinPoint thisJoinPoint) {
+    	return the_class_must_be_tested(thisJoinPoint) && the_method_must_be_tested(thisJoinPoint);
+    }
  
     after() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore) {
 
@@ -182,13 +183,15 @@ public aspect TestingCore {
     /*
      * Updates sequence made up of method symbols and object states
      */
+    
     private void updateModalSequence(JoinPoint thisJoinPoint) {
     	
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
     	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	String methodSymbol = ti.getMapMethodsToSymbols().get(getMethodName(thisJoinPoint));
     	
-    	String newSequence = getSequence(thisJoinPoint) + getPreCondition(thisJoinPoint) + methodSymbol + getPostCondition(thisJoinPoint);
+    	String newSequence = getSequence(thisJoinPoint) + getPreCondition(thisJoinPoint) 
+    									+ methodSymbol + getPostCondition(thisJoinPoint);
     	
     	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
 
@@ -295,7 +298,7 @@ public aspect TestingCore {
 		System.out.println("--  CONTINUING EXECUTION... ---");
 		System.out.println("-------------------------------");
     }
-     
+    
     /**
      * This class is intended to store the attributes and their values of the intercepted objects.
      */
@@ -309,6 +312,5 @@ public aspect TestingCore {
             this.value =  new ArrayList<Object>();
         }
     }
-        
 }
 

@@ -126,7 +126,7 @@ public class RegularExpressionHelper {
     }
     
     public static boolean is_regular_expression_with_states(String input) {
-    	return input.contains(POSTCONDITION) || input.contains(POSTCONDITION);
+    	return input.contains(POSTCONDITION) || input.contains(PRECONDITION);
     }
 
     /*

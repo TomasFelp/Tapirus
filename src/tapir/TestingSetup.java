@@ -29,7 +29,8 @@ public class TestingSetup {
 		mapMethodsToSymbols.put("main.Account.close", "x");
 		
 		//Definition of the regular expression
-		String pattern = "cvd(d|w)*:(amount<2000);>-x";
+		String pattern = "cvd(d|w)*:(amount>5873);>-x";
+		//String pattern = "cvd(d|w)*x";
 		regularExpression = ModalPattern.compile(pattern);
 		//Initializing the regular expressions controller
 		matcher = regularExpression.matcher("");	

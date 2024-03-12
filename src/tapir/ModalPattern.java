@@ -8,7 +8,12 @@ public class ModalPattern {
     private static Pattern pattern = null;
     
     public static Pattern compile(String input) {
-		pattern = Pattern.compile(RegularExpressionHelper.preCompile(input));
+    	    	
+    	if(RegularExpressionHelper.is_regular_expression_with_states(input)) {
+    		input=RegularExpressionHelper.preCompile(input);
+    	}
+    	
+		pattern = Pattern.compile(input);
 		
 		return pattern;
     }
