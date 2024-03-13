@@ -83,8 +83,6 @@ public class TestingSetup {
 		mapMethodsToSymbols.put("main.ModalAccount.unfreeze", "u");
 		mapMethodsToSymbols.put("main.ModalAccount.balance", "b");
 		//Definition of the regular expression
-		//pattern = "cv(w|b|d|:[(type!=student)];>-w-<:[(balance<0)];(d|b)*d-<:[(balance>=0)];|f(b)*u|:[(type=student)];>-d-<:[(balance>10000),(isFrozen=true)];(b)*u)*:[(balance=0)];>-x";
-		//pattern = "cvdwx";
 		pattern = "cv(b|w-:(amount>=0);|d-:(amount<=10000);|w-:(amount<0),(isOverdrawn=true);(b|d-:(amount<0);)*d-:(amount>=0);|(d-:(amount>10000);|f)b*u)*:(amount=0);-x";
 		regularExpression = ModalPattern.compile(pattern);
 		//Initializing the regular expressions controller
