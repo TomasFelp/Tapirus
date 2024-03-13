@@ -9,15 +9,15 @@ import java.util.Comparator;
 
 public class RegularExpressionHelper {
 	
-	private static final String DEFAULT_STATE_CONTENT = "[^:;>-]*";
-	private static final String DEFAULT_PRECONDITION = ":[^:;>-]*;>-";
-	private static final String DEFAULT_POSTCONDITION = "-<:[^:;>-]*;";
+	private static final String DEFAULT_STATE_CONTENT = "[^:;-]*";
+	private static final String DEFAULT_PRECONDITION = ":[^:;-]*;-";
+	private static final String DEFAULT_POSTCONDITION = "-:[^:;-]*;";
 	private static final Character STATE_START = ':';
 	private static final Character STATE_END = ';';
-	private static final String PRECONDITION = ";>-";
-	private static final String POSTCONDITION = "-<:";
-	private static final String EMPTY_PRECONDITION = ":;>-";
-	private static final String EMPTY_POSTCONDITION = "-<:;";
+	private static final String PRECONDITION = ";-";
+	private static final String POSTCONDITION = "-:";
+	private static final String EMPTY_PRECONDITION = ":;-";
+	private static final String EMPTY_POSTCONDITION = "-:;";
 
 	
 
@@ -58,7 +58,7 @@ public class RegularExpressionHelper {
 	private static boolean is_not_a_reserved_character(char character) {
     	return character != '(' && character != ')' && character != '|' &&
                 character != '*' && character != '-' && character != ']' && character != '[' &&
-                character != ':' && character != ';' && character != '<' && character != '>' ;
+                character != '+' && character != '?' && character != '<' && character != '>' ;
     }
 
 
@@ -406,15 +406,17 @@ public class RegularExpressionHelper {
         return result;
     }
 
-    
-/*
-    public static void main(String[] args) {
-        String input = "3954";
-
-        String resultado = getRegularExpressionforLess(input);
-        System.out.println(resultado);
+    /*
+     * Adds "(" and ")" to the beginning and end of each set method states, so that the quantifiers *, + and ? have the correct scope
+     */
+    private static String adjustScopeOfQuantifiers(String input) {
+    	
+    	String result = input.replaceAll("(?<!(\\^|-)):", "(:");
+    	result = result.replaceAll(";(?!-)", ";)");
+    	
+        return result;
     }
-    */
+    
     /*
      * It precompiles a text with a certain format to bring it to a valid regex regular expression.
      * 
@@ -426,6 +428,7 @@ public class RegularExpressionHelper {
     	result = addDefaultStates(result);
     	result = completeDefaultConditions(result);
     	result = indicateLiteralCharacters(result);
+    	result = adjustScopeOfQuantifiers(result);
     	
     	return result;
     }
@@ -440,15 +443,21 @@ public class RegularExpressionHelper {
     
     public static void main(String[] args) {
         //String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-    	String input = "cvd(d|w)*:(amount<2000);>-x";
-        String resultado = preCompile(input);
-        System.out.println(resultado);
+    	String input = "cv(b|w-:(amount>=0);|d-:(amount<=10000);|w-:(amount<0),(isOverdrawn=true);(b|d-:(amount<0);)*d-:(amount>=0);|(d-:(amount>10000);|f)b*u)*:(amount=0);-x";
+    	String resultado = preCompile(input);
+        //System.out.println(resultado);
         
+        Pattern regularExpression = Pattern.compile(resultado);
+        
+        
+    	//System.out.println(getRegularExpressionforLessInteger("0"));
+        /*
         System.out.println("normalizeComparators -------------------------------------------------------------------");
         System.out.println(normalizeComparators("cvd(d|w)*:(amount<2000);>-x"));
         
         System.out.println("<2000-------------------------------------------------------------------");
         System.out.println(getRegularExpressionforLessOrEqualInteger("2000"));
+        */
     }
         
 }
