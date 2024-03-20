@@ -8,6 +8,7 @@ public class TestingInformation {
 	protected String targetClass;
 	protected HashMap<Integer, String> mapObjectsToCallSequence = null; 
 	protected HashMap<String, String> mapMethodsToSymbols = null; 
+	protected  HashMap<String, String> mapAttributesToSymbols= null;
 	protected Pattern regularExpression = null; 
 	protected Matcher matcher = null;
 	protected boolean abort = true;
@@ -22,10 +23,11 @@ public class TestingInformation {
 	 * @param matcher
 	 */
 	public TestingInformation(String targetClass, HashMap<Integer, String> mapObjectsToCallSequence,
-			HashMap<String, String> mapMethodsToSymbols, String pattern, Pattern regularExpression, Matcher matcher, boolean abort) {
+			HashMap<String, String> mapMethodsToSymbols, HashMap<String, String> mapAttributesToSymbols, String pattern, Pattern regularExpression, Matcher matcher, boolean abort) {
 		this.targetClass = targetClass;
 		this.mapObjectsToCallSequence = mapObjectsToCallSequence;
 		this.mapMethodsToSymbols = mapMethodsToSymbols;
+		this.mapAttributesToSymbols = mapAttributesToSymbols;
 		this.regularExpression = regularExpression;
 		this.matcher = matcher;
 		this.abort = abort;
@@ -68,6 +70,18 @@ public class TestingInformation {
 	 */
 	public void setMapMethodsToSymbols(HashMap<String, String> mapMethodsToSymbols) {
 		this.mapMethodsToSymbols = mapMethodsToSymbols;
+	}
+	/**
+	 * @return the mapAttributesToSymbols
+	 */
+	public HashMap<String, String> getMapAttributesToSymbols() {
+		return mapAttributesToSymbols;
+	}
+	/**
+	 * @param mapMethodsToSymbols the mapMethodsToSymbols to set
+	 */
+	public void setMapAttributesToSymbols(HashMap<String, String> mapAttributesToSymbols) {
+		this.mapAttributesToSymbols = mapAttributesToSymbols;
 	}
 	/**
 	 * @return the regularExpression

@@ -122,11 +122,12 @@ public aspect TestingCore {
         for (Field attribute : attributes) {
         	attribute.setAccessible(true); 
             String attributeName = attribute.getName();
-
-            if (!attributeName.startsWith("ajc$")) {
+            String attributeSymbol = getAttributeSymbol(thisJoinPoint, attributeName);
+            
+            if (!attributeName.startsWith("ajc$") && attributeSymbol!=null) {
 	            try {
 	                Object attributeValue = attribute.get(object);
-	                interceptedObject.attribute.add(attributeName);
+	                interceptedObject.attribute.add(attributeSymbol);
 	                interceptedObject.value.add(attributeValue);
 	            } catch (IllegalAccessException e) {
 	                e.printStackTrace();
@@ -135,6 +136,10 @@ public aspect TestingCore {
         }
         
         return interceptedObject;
+    }
+    
+    private String getAttributeSymbol(JoinPoint thisJoinPoint, String attributeName) {
+    	return getTestingInformation(thisJoinPoint).getMapAttributesToSymbols().get(attributeName);
     }
     
     /*
