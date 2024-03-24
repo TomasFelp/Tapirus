@@ -150,7 +150,7 @@ public aspect TestingCore {
         
 
         for (int i = 0; i < objectState.attribute.size(); i++) {
-            result.append("(").append(objectState.attribute.get(i)).append("=").append(objectState.value.get(i)).append("),");
+            result.append("'").append(objectState.attribute.get(i)).append("=").append(objectState.value.get(i)).append("',");
         }
         
         if (result.length() > 0) {

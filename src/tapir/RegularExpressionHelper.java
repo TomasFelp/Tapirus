@@ -215,7 +215,7 @@ public class RegularExpressionHelper {
         for (int i = 0; i < operators.length; i++) {
         	operator = operators[i];
 	        // Buscar todas las ocurrencias de la subcadena del operador precedida por ":" y seguida por ";"
-	        String patron = operator + "[^\\;\\,\\)=-]*\\)";
+	        String patron = operator + "[^\\;\\,\\)=-]*\\'";
 	        Pattern pattern = Pattern.compile(patron);
 	        Matcher matcher = pattern.matcher(input);
 	
@@ -224,23 +224,23 @@ public class RegularExpressionHelper {
 	            String value = matcher.group();
 
 	            String regularExpressionForValue = value.replaceFirst(operator, "");
-	            regularExpressionForValue = regularExpressionForValue.replace(")", "");
+	            regularExpressionForValue = regularExpressionForValue.replace("'", "");
 	            
 	            switch (operator) {
                 case ">=":
-                	regularExpressionForValue = "=" + getRegularExpressionforGreaterOrEqualInteger(regularExpressionForValue) + ")";
+                	regularExpressionForValue = "=" + getRegularExpressionforGreaterOrEqualInteger(regularExpressionForValue) + "'";
                     break;
                 case "<":
-                	regularExpressionForValue = "=" + getRegularExpressionforLessInteger(regularExpressionForValue) + ")";
+                	regularExpressionForValue = "=" + getRegularExpressionforLessInteger(regularExpressionForValue) + "'";
                     break;
                 case "<=":
-                	regularExpressionForValue = "=" + getRegularExpressionforLessOrEqualInteger(regularExpressionForValue) + ")";
+                	regularExpressionForValue = "=" + getRegularExpressionforLessOrEqualInteger(regularExpressionForValue) + "'";
                     break;
                 case "!=":
-                    regularExpressionForValue = "=" + getRegularExpressionforDifferentFrom(regularExpressionForValue) + ")";
+                    regularExpressionForValue = "=" + getRegularExpressionforDifferentFrom(regularExpressionForValue) + "'";
                     break;
                 case ">":
-                	regularExpressionForValue = "=" + getRegularExpressionforGreaterInteger(regularExpressionForValue) + ")";
+                	regularExpressionForValue = "=" + getRegularExpressionforGreaterInteger(regularExpressionForValue) + "'";
                     break;
                 default:
                     break;
@@ -427,7 +427,7 @@ public class RegularExpressionHelper {
     	result = normalizeComparators(result);
     	result = addDefaultStates(result);
     	result = completeDefaultConditions(result);
-    	result = indicateLiteralCharacters(result);
+    	//result = indicateLiteralCharacters(result);
     	result = adjustScopeOfQuantifiers(result);
     	
     	return result;
@@ -443,9 +443,10 @@ public class RegularExpressionHelper {
     
     public static void main(String[] args) {
         //String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-    	String input = "cv(b|w-:(amount>=0);|d-:(amount<=10000);|w-:(amount<0),(isOverdrawn=true);(b|d-:(amount<0);)*d-:(amount>=0);|(d-:(amount>10000);|f)b*u)*:(amount=0);-x";
+    	String input = "a-:'s>1000','c=5';";
+    	//String input = "cv(b|w-:'a>=0';|d-:'a<=10000';|w-:'a<0','o=true';(b|d-:'a<0';)*d-:'a>=0';|(d-:'a>10000';|f)b*u)*:'a=0';-x";
     	String resultado = preCompile(input);
-        //System.out.println(resultado);
+        System.out.println(resultado);
         
         Pattern regularExpression = Pattern.compile(resultado);
         
