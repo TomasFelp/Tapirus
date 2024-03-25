@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import main.Account;
 import main.CheckAccount;
+import main.DummyClass;
 import main.ModalAccount;
 
 public class TestingSetup {
@@ -96,6 +97,43 @@ public class TestingSetup {
 		// All information related to how the Check Account class is testing is store in a TestingInformation instance
 		ti = new TestingInformation(ModalAccount.class.toString(), mapObjectsToCallSequence, mapMethodsToSymbols, mapAttributesToSymbols, pattern, regularExpression, matcher, false);
 		TestingCore.mapClassToTestingInformation.put(ModalAccount.class.toString(), ti);
+		
+		
+		/*
+		 * --------------------------------------------------------------------------------------------------------------------------------------------------------
+		 * 				DUMMY CLASS
+		 * --------------------------------------------------------------------------------------------------------------------------------------------------------
+		 */
+		
+		mapObjectsToCallSequence = null; 
+		mapMethodsToSymbols = null; 
+		regularExpression = null; 
+		matcher = null;
+		
+		// Testing setup for Modal Account class
+		//Definition of the methods and their corresponding symbols
+		mapObjectsToCallSequence = new HashMap<>(); 
+		mapMethodsToSymbols = new HashMap<String, String>();
+		mapMethodsToSymbols.put("main.DummyClass.<init>", "i");
+		mapMethodsToSymbols.put("main.DummyClass.a", "a");
+		mapMethodsToSymbols.put("main.DummyClass.b", "b");
+		mapMethodsToSymbols.put("main.DummyClass.c", "c");
+		mapMethodsToSymbols.put("main.DummyClass.d", "d");
+		//Definition of the attributes and their corresponding symbols
+		mapAttributesToSymbols = new HashMap<String, String>();
+		mapAttributesToSymbols.put("number", "n");
+		mapAttributesToSymbols.put("bool", "b");
+		mapAttributesToSymbols.put("string", "s");
+		mapAttributesToSymbols.put("character", "c");
+		//Definition of the regular expression
+		pattern = "i-:'s=hola';abcd";
+		//pattern = "cv(b|w-:(amount>=0);|d-:(amount<=10000);|w-:(amount<0),(isOverdrawn=true);(b|d-:(amount<0);)*d-:(amount>=0);|(d-:(amount>10000);|f)b*u)*:(amount=0);-x";
+		regularExpression = ModalPattern.compile(pattern);
+		//Initializing the regular expressions controller
+		matcher = regularExpression.matcher("");	
+		// All information related to how the Check Account class is testing is store in a TestingInformation instance
+		ti = new TestingInformation(DummyClass.class.toString(), mapObjectsToCallSequence, mapMethodsToSymbols, mapAttributesToSymbols, pattern, regularExpression, matcher, false);
+		TestingCore.mapClassToTestingInformation.put(DummyClass.class.toString(), ti);
 		
 }
 	
