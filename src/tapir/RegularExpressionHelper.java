@@ -113,16 +113,13 @@ public class RegularExpressionHelper {
      * Complete states with default conditions 
      */
 	private static String completeDefaultConditions(String input) {
-        StringBuilder result = new StringBuilder();
+		
+		String result = input.replace(":;", ":"+DEFAULT_STATE_CONTENT+";");
+		result = result.replace(":'", ":"+DEFAULT_STATE_CONTENT+"'");
+		result = result.replace("';", "'"+DEFAULT_STATE_CONTENT+";");
+		result = result.replace("',", "',("+DEFAULT_STATE_CONTENT+",)*");
 
-        for (char c : input.toCharArray()) {
-            if (c == STATE_END) {
-                result.append(DEFAULT_STATE_CONTENT);
-            }
-            result.append(c);
-        }
-
-        return result.toString();
+        return result;
     }
     
     public static boolean is_regular_expression_with_states(String input) {
