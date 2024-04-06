@@ -9,8 +9,8 @@ import java.util.Comparator;
 
 public class RegularExpressionHelper {
 	
-	private static final String DEFAULT_STATE_CONTENT = "[^:;-]*";
-	private static final String DEFAULT_PRECONDITION = ":[^:;-]*;-";
+	private static final String DEFAULT_STATE_CONTENT = "[^:;]*";
+	private static final String DEFAULT_PRECONDITION = ":[^:;]*;-";
 	private static final String DEFAULT_POSTCONDITION = "-:[^:;-]*;";
 	private static final Character STATE_START = ':';
 	private static final Character STATE_END = ';';
@@ -409,7 +409,7 @@ public class RegularExpressionHelper {
     private static String adjustScopeOfQuantifiers(String input) {
     	
     	String result = input.replaceAll("(?<!(\\^|-)):", "(:");
-    	result = result.replaceAll(";(?!-)", ";)");
+    	result = result.replaceAll("(?<!(\\^:));(?!-)", ";)");
     	
         return result;
     }
@@ -440,12 +440,12 @@ public class RegularExpressionHelper {
     
     public static void main(String[] args) {
         //String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-    	String input = "a-:'s>1000','c=5';";
+    	String input = "iaS:'s!=Max Power';-bc";
     	//String input = "cv(b|w-:'a>=0';|d-:'a<=10000';|w-:'a<0','o=true';(b|d-:'a<0';)*d-:'a>=0';|(d-:'a>10000';|f)b*u)*:'a=0';-x";
     	String resultado = preCompile(input);
         System.out.println(resultado);
         
-        Pattern regularExpression = Pattern.compile(resultado);
+        //Pattern regularExpression = Pattern.compile(resultado);
         
         
     	//System.out.println(getRegularExpressionforLessInteger("0"));
