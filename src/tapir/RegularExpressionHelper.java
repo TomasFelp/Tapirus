@@ -11,7 +11,7 @@ public class RegularExpressionHelper {
 	
 	private static final String DEFAULT_STATE_CONTENT = "[^:;]*";
 	private static final String DEFAULT_PRECONDITION = ":[^:;]*;-";
-	private static final String DEFAULT_POSTCONDITION = "-:[^:;-]*;";
+	private static final String DEFAULT_POSTCONDITION = "-:[^:;]*;";
 	private static final Character STATE_START = ':';
 	private static final Character STATE_END = ';';
 	private static final String PRECONDITION = ";-";
@@ -255,7 +255,7 @@ public class RegularExpressionHelper {
      * Returns a regular expression that accepts only values different from the one received.
      */
     private static String getRegularExpressionforDifferentFrom(String input) {
-    	return "("+input+".+|(?!"+input+").*)";
+    	return "("+input+"[^\\']+|(?!"+input+")[^\\']*)";
     }
     
 	/*
