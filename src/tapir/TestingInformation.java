@@ -8,9 +8,12 @@ public class TestingInformation {
 	protected String targetClass;
 	protected HashMap<Integer, String> mapObjectsToCallSequence = null; 
 	protected HashMap<String, String> mapMethodsToSymbols = null; 
+	protected  HashMap<String, String> mapAttributesToSymbols= null;
 	protected Pattern regularExpression = null; 
 	protected Matcher matcher = null;
 	protected boolean abort = true;
+	protected boolean modalTestType = false;
+	protected String simplifiedRegularExpression;
 	
 	/**
 	 * @param targetClass
@@ -20,13 +23,16 @@ public class TestingInformation {
 	 * @param matcher
 	 */
 	public TestingInformation(String targetClass, HashMap<Integer, String> mapObjectsToCallSequence,
-			HashMap<String, String> mapMethodsToSymbols, Pattern regularExpression, Matcher matcher, boolean abort) {
+			HashMap<String, String> mapMethodsToSymbols, HashMap<String, String> mapAttributesToSymbols, String pattern, Pattern regularExpression, Matcher matcher, boolean abort) {
 		this.targetClass = targetClass;
 		this.mapObjectsToCallSequence = mapObjectsToCallSequence;
 		this.mapMethodsToSymbols = mapMethodsToSymbols;
+		this.mapAttributesToSymbols = mapAttributesToSymbols;
 		this.regularExpression = regularExpression;
 		this.matcher = matcher;
 		this.abort = abort;
+		setModalTypeTest(RegularExpressionHelper.is_regular_expression_with_states(regularExpression.toString()));
+		simplifiedRegularExpression = pattern;
 	}
 	
 	/**
@@ -66,16 +72,37 @@ public class TestingInformation {
 		this.mapMethodsToSymbols = mapMethodsToSymbols;
 	}
 	/**
+	 * @return the mapAttributesToSymbols
+	 */
+	public HashMap<String, String> getMapAttributesToSymbols() {
+		return mapAttributesToSymbols;
+	}
+	/**
+	 * @param mapMethodsToSymbols the mapMethodsToSymbols to set
+	 */
+	public void setMapAttributesToSymbols(HashMap<String, String> mapAttributesToSymbols) {
+		this.mapAttributesToSymbols = mapAttributesToSymbols;
+	}
+	/**
 	 * @return the regularExpression
 	 */
 	public Pattern getRegularExpression() {
 		return regularExpression;
 	}
+	
+	/**
+	 * @return the simplifiedRegularExpression
+	 */
+	public String getSimplifiedRegularExpression() {
+		return simplifiedRegularExpression;
+	}
+	
 	/**
 	 * @param regularExpression the regularExpression to set
 	 */
 	public void setRegularExpression(Pattern regularExpression) {
 		this.regularExpression = regularExpression;
+		setModalTypeTest(RegularExpressionHelper.is_regular_expression_with_states(regularExpression.toString()));
 	}
 	/**
 	 * @return the matcher
@@ -105,9 +132,23 @@ public class TestingInformation {
 	}	
 	
 	/**
-	 * @param abort the abort to set
+	 * @param abort the abort to get
 	 */
 	public boolean getAbort() {
 		return this.abort;
+	}	
+	
+	/**
+	 * @param modalTestType the modalTestType to set
+	 */
+	private void setModalTypeTest(boolean modalTestType) {
+		this.modalTestType = modalTestType;
+	}	
+	
+	/**
+	 * @param modalTestType the modalTestType to get
+	 */
+	public boolean isModalTestType() {
+		return this.modalTestType;
 	}	
 }

@@ -25,6 +25,19 @@ public class ValidExample {
 		a2.withdraw(5000);
 		
 		a2.close();
+		
+		ModalAccount m1 = new ModalAccount();
+		m1.verify();
+		m1.deposit(1000);
+		m1.withdraw(500);
+		m1.balance();
+		m1.deposit(3000);
+		m1.deposit(3000);
+		m1.freeze();
+		m1.balance();
+		m1.unfreeze();
+		m1.withdraw(6500);
+		m1.close();
 
 	}
 
