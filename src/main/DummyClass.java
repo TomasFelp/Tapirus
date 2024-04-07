@@ -1,10 +1,10 @@
 package main;
 
 public class DummyClass {
-    private int number;
-    private char character;
-    private boolean bool;
-    private String string;
+    protected int number;
+    protected char character;
+    protected boolean bool;
+    protected String string;
     
     public DummyClass(int number, char character, boolean bool, String string) {
         this.number = number;
