@@ -2,12 +2,8 @@ package tapir;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.lang.reflect.*;
 import org.aspectj.lang.JoinPoint;
-import tapir.RegularExpressionHelper;
-
 
 
 /**
@@ -40,7 +36,6 @@ public aspect TestingCore {
     	mapMethodsToPreviousObjectState = new HashMap<String, ObjectState>();
     }
     
-
     before() : (execution(* *.*.*(..) ) || execution(*.new(..))) && !within(TestingCore)  && !within(TestingSetup) {
     	
     	if (theInterceptedCallisOfModalInterest(thisJoinPoint)) {
@@ -65,18 +60,14 @@ public aspect TestingCore {
     			TestingInformation ti = getTestingInformation(thisJoinPoint);
 	    		updateSequence(thisJoinPoint);
 	    		resetMatcher(ti, getSequence(thisJoinPoint));
-
 	    		if(!isMatching(ti)) {
 	    			handleNonMatchingSequence(thisJoinPoint);
-
 	    		}
     		}
     	}
     }
     
-    
     private void initSequence(JoinPoint thisJoinPoint) {
-    	
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
     	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	
@@ -84,7 +75,6 @@ public aspect TestingCore {
 			ti.getMapObjectsToCallSequence().put(objectHashCode, "");
 		}
     }
-    
     
     private String getClassName(JoinPoint thisJoinPoint) {
     	return "class " + thisJoinPoint.getStaticPart().getSignature().getDeclaringTypeName();
@@ -97,8 +87,7 @@ public aspect TestingCore {
     private boolean the_class_must_be_tested(JoinPoint thisJoinPoint) {
     	return mapClassToTestingInformation.containsKey(getClassName(thisJoinPoint));
     }
-    
-    
+     
     private boolean the_method_must_be_tested(JoinPoint thisJoinPoint) {
     	return getTestingInformation(thisJoinPoint).getMapMethodsToSymbols().containsKey(getMethodName(thisJoinPoint));
     }
@@ -112,13 +101,11 @@ public aspect TestingCore {
     }
     
     private ObjectState retrieveObjectFields(JoinPoint thisJoinPoint) {
-    	
     	Object object = thisJoinPoint.getThis();
         Class<?> clase = object.getClass();
         Field[] attributes = clase.getDeclaredFields();
         ObjectState interceptedObject = new ObjectState();
         
-
         for (Field attribute : attributes) {
         	attribute.setAccessible(true); 
             String attributeName = attribute.getName();
@@ -143,14 +130,18 @@ public aspect TestingCore {
     }
     
     /*
-     * Return a string made up of tuples (attribute=value) according to the state of the object
+     * Return a string made up of tuples 'attribute=value' according to the state of the object
      */
     private String normalizeObjectState(ObjectState objectState, JoinPoint thisJoinPoint) {
         StringBuilder result = new StringBuilder();
-        
 
         for (int i = 0; i < objectState.attribute.size(); i++) {
-            result.append("'").append(objectState.attribute.get(i)).append("=").append(objectState.value.get(i)).append("',");
+            result.append(RegularExpressionHelper.CONDITION_BOUNDARIES);
+            result.append(objectState.attribute.get(i));
+            result.append("=");
+            result.append(objectState.value.get(i));
+            result.append(RegularExpressionHelper.CONDITION_BOUNDARIES);
+            result.append(RegularExpressionHelper.CONDITION_SEPARATOR);
         }
         
         if (result.length() > 0) {
@@ -188,18 +179,14 @@ public aspect TestingCore {
     /*
      * Updates sequence made up of method symbols and object states
      */
-    
     private void updateModalSequence(JoinPoint thisJoinPoint) {
-    	
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
     	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	String methodSymbol = ti.getMapMethodsToSymbols().get(getMethodName(thisJoinPoint));
-    	
     	String newSequence = getSequence(thisJoinPoint) + getPreCondition(thisJoinPoint) 
     									+ methodSymbol + getPostCondition(thisJoinPoint);
     	
     	ti.getMapObjectsToCallSequence().put(objectHashCode, newSequence);
-
     }
     
     /*
@@ -219,7 +206,6 @@ public aspect TestingCore {
     	
     	return RegularExpressionHelper.makePostScondition(result);
     }
-    
     
     private String getSequence(JoinPoint thisJoinPoint) {
     	
@@ -258,8 +244,6 @@ public aspect TestingCore {
     }
     
     private void showErrorInformation(JoinPoint thisJoinPoint){
-    	
-    	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
     	
 		System.out.println("Class: "+ getClassName(thisJoinPoint));
@@ -272,7 +256,6 @@ public aspect TestingCore {
     private String getSimplifiedSequence(JoinPoint thisJoinPoint) {
     	int objectHashCode = getObjectHashCode(thisJoinPoint);
     	TestingInformation ti = getTestingInformation(thisJoinPoint);
-    	
     	String result = ti.getMapObjectsToCallSequence().get(objectHashCode);
     	
     	if(ti.isModalTestType()) {

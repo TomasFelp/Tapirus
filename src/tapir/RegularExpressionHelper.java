@@ -14,13 +14,15 @@ public class RegularExpressionHelper {
 	private static final String DEFAULT_POSTCONDITION = "-:[^:;]*;";
 	private static final Character STATE_START = ':';
 	private static final Character STATE_END = ';';
+	private static final String EMPTY_STATE = ":;";
 	private static final String PRECONDITION = ";-";
 	private static final String POSTCONDITION = "-:";
 	private static final String EMPTY_PRECONDITION = ":;-";
 	private static final String EMPTY_POSTCONDITION = "-:;";
+	public static final String CONDITION_SEPARATOR = ",";
+	public static final String CONDITION_BOUNDARIES = "'";
 
 	
-
 	/*
 	 * For every element of the sequence that does not have a precondition or postcondition, add a generic by default.
 	 */
@@ -51,7 +53,7 @@ public class RegularExpressionHelper {
                 insideState = false;
             }
         }
-
+        
         return result.toString();
     }
 
@@ -84,10 +86,8 @@ public class RegularExpressionHelper {
             result.delete(result.length() - 1, result.length());
         }
         
-        
         return result.toString();
     }
-
 
     /*
      * Lexicographically orders the tuples found in each state.
@@ -108,52 +108,20 @@ public class RegularExpressionHelper {
         return result.toString();
     }
     
-
 	/*
      * Complete states with default conditions 
      */
 	private static String completeDefaultConditions(String input) {
-		
-		String result = input.replace(":;", ":"+DEFAULT_STATE_CONTENT+";");
-		result = result.replace(":'", ":"+DEFAULT_STATE_CONTENT+"'");
-		result = result.replace("';", "'"+DEFAULT_STATE_CONTENT+";");
-		result = result.replace("',", "',("+DEFAULT_STATE_CONTENT+",)*");
+		String result = input.replace(EMPTY_STATE, ""+STATE_START+DEFAULT_STATE_CONTENT+STATE_END);
+		result = result.replace(""+STATE_START+CONDITION_BOUNDARIES, ""+STATE_START+DEFAULT_STATE_CONTENT+CONDITION_BOUNDARIES);
+		result = result.replace(""+CONDITION_BOUNDARIES+STATE_END, ""+CONDITION_BOUNDARIES+DEFAULT_STATE_CONTENT+STATE_END);
+		result = result.replace(""+CONDITION_BOUNDARIES+CONDITION_SEPARATOR, ""+CONDITION_BOUNDARIES+CONDITION_SEPARATOR+"("+DEFAULT_STATE_CONTENT+",)*");
 
         return result;
     }
     
     public static boolean is_regular_expression_with_states(String input) {
     	return input.contains(POSTCONDITION) || input.contains(PRECONDITION);
-    }
-
-    /*
-     * Some characters used to indicate the states are reserved by regex, 
-     * this function identifies them and indicates that they should be taken literally
-     */
-    private static String indicateLiteralCharacters(String input) {
-    	String result;
-    	
-    	result = input.replace(":(", ":\\(");
-    	result = result.replace(",(", ",\\(");
-    	result = result.replace("),", "\\),");
-    	result = result.replace(");", "\\);");
-    	result = result.replace(")"+DEFAULT_STATE_CONTENT, "\\)"+DEFAULT_STATE_CONTENT);
-
-        return result;
-    }
-    
-    
-    /*
-     * Returns a string without the changes added in the precompilation
-     */
-    public static String simplifyRegularExpressionForView(String input) {
-    	
-    	String result = input.replaceAll("\\Q"+DEFAULT_STATE_CONTENT+"\\E","");
-    	result = result.replaceAll("\\Q"+EMPTY_PRECONDITION+"\\E","");
-    	result = result.replaceAll("\\Q"+EMPTY_POSTCONDITION+"\\E","");
-    	result = result.replaceAll("\\\\","");
-    	
-    	return result;
     }
     
     /*
@@ -164,7 +132,7 @@ public class RegularExpressionHelper {
     }
     
     /*
-     * receives a state in the form of a list of tuples and concatenates them with the precondition syntax
+     * receives a state in the form of a list of tuples and concatenates them with the postcondition syntax
      */
     public static String makePostScondition(String input) {
     	return POSTCONDITION + input + STATE_END;
@@ -173,10 +141,8 @@ public class RegularExpressionHelper {
     /*
 	 * Removes state from all methods except the last one
 	 */
-	public static String simplifySequence(String input) {
-		
+	public static String simplifySequence(String input) {	
 		int penultimatePosition = findPenultimatePosition(input, STATE_START);
-
         String substringStart = input.substring(0, penultimatePosition);
         substringStart = substringStart.replaceAll(DEFAULT_PRECONDITION, "");
         substringStart = substringStart.replaceAll(DEFAULT_POSTCONDITION, "");
@@ -208,46 +174,39 @@ public class RegularExpressionHelper {
         String[] operators = {">=", "<", "<=", "!=", ">"};
         String operator;
         
-        // Acceso e impresión de los elementos del arreglo
         for (int i = 0; i < operators.length; i++) {
         	operator = operators[i];
-	        // Buscar todas las ocurrencias de la subcadena del operador precedida por ":" y seguida por ";"
-	        String patron = operator + "[^\\;\\,\\)=-]*\\'";
+	        String patron = operator + "[^\\"+STATE_END+"\\"+CONDITION_BOUNDARIES+"=-]*\\"+CONDITION_BOUNDARIES;
 	        Pattern pattern = Pattern.compile(patron);
 	        Matcher matcher = pattern.matcher(input);
 	
 	        while (matcher.find()) {
-	            // Obtener la subcadena encontrada y convertirla a mayúsculas
 	            String value = matcher.group();
-
 	            String regularExpressionForValue = value.replaceFirst(operator, "");
 	            regularExpressionForValue = regularExpressionForValue.replace("'", "");
 	            
 	            switch (operator) {
                 case ">=":
-                	regularExpressionForValue = "=" + getRegularExpressionforGreaterOrEqualInteger(regularExpressionForValue) + "'";
+                	regularExpressionForValue = getRegularExpressionforGreaterOrEqualInteger(regularExpressionForValue);
                     break;
                 case "<":
-                	regularExpressionForValue = "=" + getRegularExpressionforLessInteger(regularExpressionForValue) + "'";
+                	regularExpressionForValue = getRegularExpressionforLessInteger(regularExpressionForValue);
                     break;
                 case "<=":
-                	regularExpressionForValue = "=" + getRegularExpressionforLessOrEqualInteger(regularExpressionForValue) + "'";
+                	regularExpressionForValue = getRegularExpressionforLessOrEqualInteger(regularExpressionForValue);
                     break;
                 case "!=":
-                    regularExpressionForValue = "=" + getRegularExpressionforDifferentFrom(regularExpressionForValue) + "'";
+                    regularExpressionForValue = getRegularExpressionforDifferentFrom(regularExpressionForValue);
                     break;
                 case ">":
-                	regularExpressionForValue = "=" + getRegularExpressionforGreaterInteger(regularExpressionForValue) + "'";
+                	regularExpressionForValue = getRegularExpressionforGreaterInteger(regularExpressionForValue);
                     break;
                 default:
                     break;
             }
-	            
-	            // Reemplazar la subcadena original con la versión en mayúsculas
-	            result = result.replace(value, regularExpressionForValue);
+	            result = result.replace(value,""+"="+regularExpressionForValue+CONDITION_BOUNDARIES);
 	        }
         }
-
         return result;
     }
     
@@ -255,7 +214,7 @@ public class RegularExpressionHelper {
      * Returns a regular expression that accepts only values different from the one received.
      */
     private static String getRegularExpressionforDifferentFrom(String input) {
-    	return "("+input+"[^\\']+|(?!"+input+")[^\\']*)";
+    	return "("+input+"[^\\"+CONDITION_BOUNDARIES+"]+|(?!"+input+")[^\\"+CONDITION_BOUNDARIES+"]*)";
     }
     
 	/*
@@ -303,7 +262,6 @@ public class RegularExpressionHelper {
         return "(" + result.toString() +")";
     }
 	
-    
 	/*
      * Returns a regular expression that accepts only natural numbers greater or equal than the one contained in the received string
      */
@@ -318,7 +276,6 @@ public class RegularExpressionHelper {
         
         return "(" + result.toString() + ")";
     }
-    
     
     private static StringBuilder getRegularExpressionforGreater_aux(String input) {
     	StringBuilder result = new StringBuilder();
@@ -387,7 +344,6 @@ public class RegularExpressionHelper {
         return "(" + result.toString() +")";
     }
 
-    
     private static StringBuilder getRegularExpressionforLess_aux(String input) {
     	StringBuilder result = new StringBuilder();
         int length = input.length();
@@ -408,15 +364,14 @@ public class RegularExpressionHelper {
      */
     private static String adjustScopeOfQuantifiers(String input) {
     	
-    	String result = input.replaceAll("(?<!(\\^|-)):", "(:");
-    	result = result.replaceAll("(?<!(\\^:));(?!-)", ";)");
+    	String result = input.replaceAll("(?<!(\\^|-))"+STATE_START, "("+STATE_START);
+    	result = result.replaceAll("(?<!(\\^"+STATE_START+"))"+STATE_END+"(?!-)", STATE_END+")");
     	
         return result;
     }
     
     /*
      * It precompiles a text with a certain format to bring it to a valid regex regular expression.
-     * 
      */
     public static String preCompile(String intput) {
     	
@@ -424,40 +379,10 @@ public class RegularExpressionHelper {
     	result = normalizeComparators(result);
     	result = addDefaultStates(result);
     	result = completeDefaultConditions(result);
-    	//result = indicateLiteralCharacters(result);
     	result = adjustScopeOfQuantifiers(result);
     	
     	return result;
-    }
-    
-    /*
-    public static void main(String[] args) {
-        String input = "a-<:(x3!=true),(x2=7),(x1=5);bb:(x!=true);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-        String resultado = preCompile(input);
-        System.out.println(resultado);
-    }
-    */
-    
-    public static void main(String[] args) {
-        //String input = "a-<:(x3!=true),(x2<7),(x1=5);bb:(x>123);>-c-<:(x=false);>eb-<:(b>=3),(c<=3),(a!=true);";
-    	String input = "iaS:'s!=Max Power';-bc";
-    	//String input = "cv(b|w-:'a>=0';|d-:'a<=10000';|w-:'a<0','o=true';(b|d-:'a<0';)*d-:'a>=0';|(d-:'a>10000';|f)b*u)*:'a=0';-x";
-    	String resultado = preCompile(input);
-        System.out.println(resultado);
-        
-        //Pattern regularExpression = Pattern.compile(resultado);
-        
-        
-    	//System.out.println(getRegularExpressionforLessInteger("0"));
-        /*
-        System.out.println("normalizeComparators -------------------------------------------------------------------");
-        System.out.println(normalizeComparators("cvd(d|w)*:(amount<2000);>-x"));
-        
-        System.out.println("<2000-------------------------------------------------------------------");
-        System.out.println(getRegularExpressionforLessOrEqualInteger("2000"));
-        */
-    }
-        
+    }   
 }
 
 
