@@ -109,8 +109,8 @@ public aspect TestingCore {
         for (Field attribute : attributes) {
         	attribute.setAccessible(true); 
             String attributeName = attribute.getName();
-            String attributeSymbol = getAttributeSymbol(thisJoinPoint, attributeName);
-            
+            String attributeSymbol = getAttributeSymbol(thisJoinPoint, clase.getName() + "." + attributeName);
+
             if (!attributeName.startsWith("ajc$") && attributeSymbol!=null) {
 	            try {
 	                Object attributeValue = attribute.get(object);
@@ -300,5 +300,6 @@ public aspect TestingCore {
             this.value =  new ArrayList<Object>();
         }
     }
+    
 }
 

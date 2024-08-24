@@ -85,8 +85,8 @@ public class TestingSetup {
 		mapMethodsToSymbols.put("main.ModalAccount.balance", "b");
 		//Definition of the attributes and their corresponding symbols
 		mapAttributesToSymbols = new HashMap<String, String>();
-		mapAttributesToSymbols.put("amount", "a");
-		mapAttributesToSymbols.put("isOverdrawn", "o");
+		mapAttributesToSymbols.put("main.ModalAccount.amount", "a");
+		mapAttributesToSymbols.put("main.ModalAccount.isOverdrawn", "o");
 		//Definition of the regular expression
 		pattern = "cv(b|w-:'a>=0';|d-:'a<=10000';|w-:'a<0','o=true';(b|d-:'a<0';)*d-:'a>=0';|(d-:'a>10000';|f)b*u)*:'a=0';-x";
 		//pattern = "cv(b|w-:(amount>=0);|d-:(amount<=10000);|w-:(amount<0),(isOverdrawn=true);(b|d-:(amount<0);)*d-:(amount>=0);|(d-:(amount>10000);|f)b*u)*:(amount=0);-x";
